@@ -1,20 +1,28 @@
+using NUnit.Framework.Constraints;
+using Unity.Cinemachine;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private Animator[] _dronAnimator;
+    [SerializeField] private Animator[] _dronFansAnimator;
+    [SerializeField] private Animator _dronAnimator;
+    [SerializeField] private CinemachineCamera _camera;
+    [SerializeField] private CameraTarget _targetNull;
+    [SerializeField] private CameraTarget _targetSelf;
     [SerializeField] private float _speed;
     [SerializeField] private float _rotationSpeed;
     [SerializeField] private float _maxSpeed;
     private Rigidbody _rb;
     private PlayerMov _input;
+    private Quaternion _rotation;
 
     void Start()
     {
         _input = new PlayerMov();
         _input.Enable();
         _rb = GetComponent<Rigidbody>();
+        _rotation = transform.rotation;
     }
 
 
@@ -63,18 +71,38 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.layer == 3)
         {
-            for (int i  = 0; i < _dronAnimator.Length; i++)
+            for (int i = 0; i < _dronFansAnimator.Length; i++)
             {
-                _dronAnimator[i].SetBool("IsGrounded", true);
+                _dronFansAnimator[i].SetBool("IsGrounded", true);
             }
         }
-        else
+
+        if (collision.gameObject.layer == 8)
         {
-            for (int i = 0; i < _dronAnimator.Length; i++)
+            _camera.Target = _targetNull;
+            _dronAnimator.enabled = true;
+            _dronAnimator.SetBool("IsTooHigh", true);
+
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.layer == 3)
+        {
+            for (int i = 0; i < _dronFansAnimator.Length; i++)
             {
-                _dronAnimator[i].SetBool("IsGrounded", false);
+                _dronFansAnimator[i].SetBool("IsGrounded", false);
             }
         }
-       
+
+        if (collision.gameObject.layer == 8)
+        {
+            _camera.Target = _targetSelf;
+            _dronAnimator.SetBool("IsTooHigh", false);
+            _dronAnimator.enabled = false;
+            transform.rotation = _rotation;
+
+        }
     }
 }
