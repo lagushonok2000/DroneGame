@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class DeathFromWeapon : MonoBehaviour
 {
+    [SerializeField] private PlayerMovement _PlayerMovementClass;
     [SerializeField] private ParticleSystem _death;
     [SerializeField] private DronExplosion _dronExplosionClass;
     [SerializeField] private CinemachineCamera _camera;
@@ -11,9 +12,9 @@ public class DeathFromWeapon : MonoBehaviour
 
     private void Start()
     {
-        _camera.Target = _nullTarget;
-        _death.transform.position = transform.position;
-        _dronExplosionClass.Explode();
+        //_camera.Target = _nullTarget;
+        //_death.transform.position = transform.position;
+        //_dronExplosionClass.Explode();
     }
     private void OnCollisionEnter(Collision collision)
     {
