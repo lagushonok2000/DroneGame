@@ -1,10 +1,9 @@
-using NUnit.Framework.Constraints;
 using Unity.Cinemachine;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [SerializeField] private Transform _playerChild;
     [SerializeField] private Animator[] _dronFansAnimator;
     [SerializeField] private Animator _dronAnimator;
     [SerializeField] private CinemachineCamera _camera;
@@ -13,16 +12,17 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _speed;
     [SerializeField] private float _rotationSpeed;
     [SerializeField] private float _maxSpeed;
-    private Rigidbody _rb;
+    [SerializeField] private Rigidbody _rb;
     private PlayerMov _input;
     private Quaternion _rotation;
+
+    private bool _swing;
 
     void Start()
     {
         _input = new PlayerMov();
         _input.Enable();
-        _rb = GetComponent<Rigidbody>();
-        _rotation = transform.rotation;
+        _rotation = _playerChild.rotation;
     }
 
 
@@ -35,27 +35,27 @@ public class PlayerMovement : MonoBehaviour
             _rb.linearVelocity = _rb.linearVelocity.normalized * _maxSpeed;
         }
 
-        if (_input.Player.Moveforward.IsPressed())
+        if (_input.Player.Moveforward.IsPressed() && !_swing)
         {
-            _rb.AddForce(transform.forward * _speed, ForceMode.VelocityChange);
+            _rb.AddForce(_playerChild.forward * _speed, ForceMode.VelocityChange);
         }
 
-        if (_input.Player.Moveleft.IsPressed())
+        if (_input.Player.Moveleft.IsPressed() && !_swing)
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, transform.rotation * Quaternion.Euler(0, -90, 0), _rotationSpeed * Time.deltaTime);
+            _playerChild.rotation = Quaternion.RotateTowards(_playerChild.rotation, _playerChild.rotation * Quaternion.Euler(0, -90, 0), _rotationSpeed * Time.deltaTime);
         }
 
-        if (_input.Player.Moveright.IsPressed())
+        if (_input.Player.Moveright.IsPressed() && !_swing)
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, transform.rotation * Quaternion.Euler(0, 90, 0), _rotationSpeed * Time.deltaTime);
+            _playerChild.rotation = Quaternion.RotateTowards(_playerChild.rotation, _playerChild.rotation * Quaternion.Euler(0, 90, 0), _rotationSpeed * Time.deltaTime);
         }
 
-        if (_input.Player.Moveback.IsPressed())
+        if (_input.Player.Moveback.IsPressed() && !_swing)
         {
-            _rb.AddForce(-transform.forward * _speed, ForceMode.VelocityChange);
+            _rb.AddForce(-_playerChild.forward * _speed, ForceMode.VelocityChange);
         }
 
-        if (_input.Player.Moveup.IsPressed())
+        if (_input.Player.Moveup.IsPressed() && !_swing)
         {
             _rb.AddForce(Vector3.up * _speed, ForceMode.VelocityChange);
         }
@@ -64,7 +64,6 @@ public class PlayerMovement : MonoBehaviour
         {
             _rb.AddForce(Vector3.down * _speed, ForceMode.VelocityChange);
         }
-        
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -79,10 +78,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (collision.gameObject.layer == 8)
         {
+            _rotation = _playerChild.rotation;
             _camera.Target = _targetNull;
             _dronAnimator.enabled = true;
             _dronAnimator.SetBool("IsTooHigh", true);
-
+            _swing = true;
         }
     }
 
@@ -101,8 +101,8 @@ public class PlayerMovement : MonoBehaviour
             _camera.Target = _targetSelf;
             _dronAnimator.SetBool("IsTooHigh", false);
             _dronAnimator.enabled = false;
-            transform.rotation = _rotation;
-
+            _playerChild.rotation = _rotation;
+            _swing = false;
         }
     }
 }
